@@ -40,8 +40,9 @@ done
 #------------Initial precautions--------------#
 
 #validity of arguments check
-(( OPTIND-- ))
-shift $OPTIND
+# (( OPTIND-- ))
+# shift $OPTIND
+shift $((OPTIND-1))
 
 #invalid number of arguments
 if [ $# -gt 1 ]; then
@@ -214,6 +215,13 @@ fi
 
 if [ "$normalisationFlag" -eq 1 ]; then
   findMaximum
+  # if [ "$maximum" -lt "$width" ]; then
+  #   #(pocet suborov o velkosti n) * maximum / (width - 1)
+  #   #zaokruhlit nahor
+  # elif [ "$maximum" -ge "$width" ];then
+  #   #(pocet suborov o velkosti n) * (width -1) / maximum
+  #   #zaokruhlit nahor
+  # fi
 fi
 #adjusts the values according to the max/width ratio
 #rounding is always done upwards
