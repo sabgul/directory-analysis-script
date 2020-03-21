@@ -72,7 +72,7 @@ if [ $regexFlag -eq 1 ]; then
 fi
 
 #---------------------------------------------#
-#-------------histogram variables-------------#
+#-------------Histogram variables-------------#
 
 lessTh100B=0
 lessTh1KiB=0
@@ -96,7 +96,6 @@ function getFiles {
 }
 
 #finds the number of files of particular size
-
 filter() {
   size=$1
   if [ "$size" -lt 100 ]; then
@@ -120,6 +119,16 @@ filter() {
   fi
 }
 
+#draws number of hashes according to the number of files
+hashPut() {
+  total=$1
+  index=0
+  while [ $index -lt $total ]; do
+    printf "#"
+    index=$((index+1))
+  done
+  printf "\n"
+}
 # function filter_names {
 #   if [ $regexFlag -eq 0 ]; then
 #     cat
@@ -136,7 +145,7 @@ filter() {
 # }
 
 #---------------------------------------------#
-
+#---------------------------------------------#
 #displays the root directory
 echo "Root directory: $DIR"
 
@@ -150,9 +159,7 @@ echo "Root directory: $DIR"
 
 #no directories are to be ignored
 if [ "$regexFlag" -eq 0 ]; then
-
   #recursively gets the number of all directories
-  # echo "Directories:$(find "$DIR" -type d -ls | wc -l)"
   ls -lR "$DIR" | grep ^d | wc -l | {
     read -r allFolders
     ND=$allFolders
@@ -166,33 +173,23 @@ if [ "$regexFlag" -eq 0 ]; then
     NF=$allFiles
     echo "All files: $NF"
   }
-index=0
 
-tmp=$(find "$DIR" -type f -ls | egrep -v '^d' | awk '{print $7}')
-  index="$tmp"
-  #echo ">>> $index"
+  #gets the sizes of all files within the folder
+  size=$(find "$DIR" -type f -ls | egrep -v '^d' | awk '{print $7}')
 
-#while read line; do echo "LINE: '${line}'"; done <<< "$index"
-while read line; do filter $line; done <<< "$index"
-
-echo "File size histogram:"
-echo "  <100 B: $lessTh100B"
-echo "  <1 KiB: $lessTh1KiB"
-echo "  <10 KiB: $lessTh10Kib"
-echo "  <100 KiB: $lessTh100Kib"
-echo "  <1 MiB: $lessTh1Mib"
-echo "  <10 MiB: $lessTh10Mib"
-echo "  <100 MiB: $lessTh100Mib"
-echo "  <1 GiB: $lessTh1Gib"
-echo "  >=1 GiB: $greaterEq1Gib"
-
-
-# find "$DIR" -type f -ls | awk '{printf $7}' | {
-#   read -r line
-#   echo "$line "
-# }
-
+  #parses the sizes and passes them to function filter
+  while read line; do filter $line; done <<< "$size"
 fi
 
-
-#echo "File size histogram:"
+#---------------------------------------------#
+#---------------------------------------------#
+echo "File size histogram:"
+printf "  <100 B: "; hashPut $lessTh100B
+printf "  <1 KiB: "; hashPut $lessTh1KiB
+printf "  <10 KiB: "; hashPut $lessTh10Kib
+printf "  <100 KiB: "; hashPut $lessTh100Kib
+printf "  <1 MiB: "; hashPut $lessTh1Mib
+printf "  <10 MiB: "; hashPut $lessTh10Mib
+printf "  <100 MiB: "; hashPut $lessTh100Mib
+printf "  <1 GiB: "; hashPut $lessTh1Gib
+printf "  >=1 GiB: "; hashPut $greaterEq1Gib
