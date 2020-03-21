@@ -8,8 +8,8 @@
 export POSIXLY_CORRECT=yes
 IFS=' '
 regex=''
-normalisation=0
 regexFlag=0
+normalisation=0
 
 #current directory
 DIR=$(pwd)
@@ -72,8 +72,8 @@ if [ $regexFlag -eq 1 ]; then
 fi
 
 #---------------------------------------------#
+#-------------histogram variables-------------#
 
-##histogram variables
 lessTh100B=0
 lessTh1KiB=0
 lessTh10Kib=0
@@ -86,6 +86,7 @@ greaterEq1Gib=0
 
 #---------------------------------------------#
 #-----------------Functions-------------------#
+
 function getFiles {
   nOfFiles=0
   while read -r line; do
@@ -95,52 +96,56 @@ function getFiles {
 }
 
 #finds the number of files of particular size
-function filter_size {
-   while read -r line; do
-    echo "$line" | awk '{printf $7}' | {
-      read -r size
-      if [ $size -lt 100 ]; then
-        ((lessTh100B=lessTh100B+1))
-        echo "$lessTh100B"
-      elif [ $size -lt 1024 ]; then
-        echo "lol2"
-        lessTh1KiB=$((lessTh1KiB+1))
-      elif [ $size -lt 10240 ]; then
-        echo "lol3"
-        lessTh10Kib=$((lessTh10Kib+1))
-      elif [ $size -lt 102400 ]; then
-        echo "lol4"
-        lessTh100Kib=$((lessTh100Kib+1))
-      elif [ $size -lt 1048576 ]; then
-        echo "lol5"
-        lessTh1Mib=$((lessTh1Mib+1))
-      elif [ $size -lt 10485760 ]; then
-        echo "lol6"
-        lessTh10Mib=$((lessTh10Mib+1))
-      elif [ $size -lt 104857600 ]; then
-        echo "lol7"
-        lessTh100Mib=$((lessTh100Mib+1))
-      elif [ $size -lt 1073741824 ]; then
-        echo "lol8"
-        lessTh1Gib=$((lessTh1Gib+1))
-      elif [ $size -ge 1073741824 ]; then
-        echo "lol9"
-        greaterEq1Gib=$((greaterEq1Gib+1))
-      fi
-    }
-  done
+
+function filter {
+  read -r size
+  if [ "$size" -lt 100 ]; then
+    lessTh100B=$((lessTh100B+1))
+    echo "$lessTh100B"
+  elif [ $size -lt 1024 ]; then
+    echo "lol2"
+    lessTh1KiB=$((lessTh1KiB+1))
+  elif [ $size -lt 10240 ]; then
+    echo "lol3"
+    lessTh10Kib=$((lessTh10Kib+1))
+  elif [ $size -lt 102400 ]; then
+    echo "lol4"
+    lessTh100Kib=$((lessTh100Kib+1))
+  elif [ $size -lt 1048576 ]; then
+    echo "lol5"
+    lessTh1Mib=$((lessTh1Mib+1))
+  elif [ $size -lt 10485760 ]; then
+    echo "lol6"
+    lessTh10Mib=$((lessTh10Mib+1))
+  elif [ $size -lt 104857600 ]; then
+    echo "lol7"
+    lessTh100Mib=$((lessTh100Mib+1))
+  elif [ $size -lt 1073741824 ]; then
+    echo "lol8"
+    lessTh1Gib=$((lessTh1Gib+1))
+  elif [ $size -ge 1073741824 ]; then
+    echo "lol9"
+    greaterEq1Gib=$((greaterEq1Gib+1))
+  fi
+
 }
 
+# function filter_names {
+#   if [ $regexFlag -eq 0 ]; then
+#     cat
+#     return
+#   fi
+#
+#   while read -r line; do
+#     echo $line | awk '{print $7}' | {
+#         read -r check
+#       if [[ ! $check =~ $regex ]]; then
+#         echo "$line"
+#       fi
+#     }
+# }
+
 #---------------------------------------------#
-  # echo "1.: $lessTh100B"
-  # echo "2.: $lessTh1KiB"
-  # echo "3.: $lessTh10Kib"
-  # echo "4.: $lessTh100Kib"
-  # echo "5.: $lessTh1Mib"
-  # echo "6.: $lessTh10Mib"
-  # echo "7.: $lessTh100Mib"
-  # echo "8.: $lessTh1Gib"
-  # echo "9.: $greaterEq1Gib"
 
 #displays the root directory
 echo "Root directory: $DIR"
@@ -157,67 +162,110 @@ echo "Root directory: $DIR"
 if [ "$regexFlag" -eq 0 ]; then
 
   #recursively gets the number of all directories
+  # echo "Directories:$(find "$DIR" -type d -ls | wc -l)"
   ls -lR "$DIR" | grep ^d | wc -l | {
     read -r allFolders
     ND=$allFolders
-    ND=$((ND + 1))
+    ND=$((ND+1))
     echo "Directories: $ND"
   }
 
-  #recursively gets the number of all files
-  ls -lR "$DIR" | grep ^- | wc -l | {
+  #recursively gets the number of all files (even the hidden ones)
+  ls -lR -la "$DIR" | grep ^- | wc -l | {
     read -r allFiles
     NF=$allFiles
     echo "All files: $NF"
   }
 
-  #counts the number of files of particular size
-find "$DIR" -type f -ls |  {
-while read -r line; do
- echo "$line" | awk '{printf $7}' | {
-   read -r size
-   if [ "$size" -lt 100 ]; then
-     ((lessTh100B=lessTh100B+1))
-     echo "$lessTh100B"
-   elif [ "$size" -lt 1024 ]; then
-     echo "lol2"
-     lessTh1KiB=$((lessTh1KiB+1))
-   elif [ "$size" -lt 10240 ]; then
-     echo "lol3"
-     lessTh10Kib=$((lessTh10Kib+1))
-   elif [ "$size" -lt 102400 ]; then
-     echo "lol4"
-     lessTh100Kib=$((lessTh100Kib+1))
-   elif [ "$size" -lt 1048576 ]; then
-     echo "lol5"
-     lessTh1Mib=$((lessTh1Mib+1))
-   elif [ "$size" -lt 10485760 ]; then
-     echo "lol6"
-     lessTh10Mib=$((lessTh10Mib+1))
-   elif [ "$size" -lt 104857600 ]; then
-     echo "lol7"
-     lessTh100Mib=$((lessTh100Mib+1))
-   elif [ "$size" -lt 1073741824 ]; then
-     echo "lol8"
-     lessTh1Gib=$((lessTh1Gib+1))
-   elif [ "$size" -ge 1073741824 ]; then
-     echo "lol9"
-     greaterEq1Gib=$((greaterEq1Gib+1))
-   fi
- }
-done
+find "$DIR" -type f -ls | egrep -v '^d' | awk '{print $7}' | {
+  read -r size
+  if [ "$size" -lt 100 ]; then
+    lessTh100B=$((lessTh100B+1))
+    echo "$lessTh100B"
+  elif [ $size -lt 1024 ]; then
+    echo "lol2"
+    lessTh1KiB=$((lessTh1KiB+1))
+  elif [ $size -lt 10240 ]; then
+    echo "lol3"
+    lessTh10Kib=$((lessTh10Kib+1))
+  elif [ $size -lt 102400 ]; then
+    echo "lol4"
+    lessTh100Kib=$((lessTh100Kib+1))
+  elif [ $size -lt 1048576 ]; then
+    echo "lol5"
+    lessTh1Mib=$((lessTh1Mib+1))
+  elif [ $size -lt 10485760 ]; then
+    echo "lol6"
+    lessTh10Mib=$((lessTh10Mib+1))
+  elif [ $size -lt 104857600 ]; then
+    echo "lol7"
+    lessTh100Mib=$((lessTh100Mib+1))
+  elif [ $size -lt 1073741824 ]; then
+    echo "lol8"
+    lessTh1Gib=$((lessTh1Gib+1))
+  elif [ $size -ge 1073741824 ]; then
+    echo "lol9"
+    greaterEq1Gib=$((greaterEq1Gib+1))
+  fi
+
 }
-echo "1.: $lessTh100B"
-echo "2.: $lessTh1KiB"
-echo "3.: $lessTh10Kib"
-echo "4.: $lessTh100Kib"
-echo "5.: $lessTh1Mib"
-echo "6.: $lessTh10Mib"
-echo "7.: $lessTh100Mib"
-echo "8.: $lessTh1Gib"
-echo "9.: $greaterEq1Gib"
+
+
+echo "File size histogram:"
+echo "  <100 B: $lessTh100B"
+echo "  <1 KiB: $lessTh1KiB"
+echo "  <10 KiB: $lessTh10Kib"
+echo "  <100 KiB: $lessTh100Kib"
+echo "  <1 MiB: $lessTh1Mib"
+echo "  <10 MiB: $lessTh10Mib"
+echo "  <100 MiB: $lessTh100Mib"
+echo "  <1 GiB: $lessTh1Gib"
+echo "  >=1 GiB: $greaterEq1Gib"
+
+
+# find "$DIR" -type f -ls | awk '{printf $7}' | {
+#   read -r line
+#   echo "$line "
+# }
+
+#counts the number of files of particular size
+# find "$DIR" -type f -ls |  {
+# while read -r line; do
+#  echo "$line" | awk '{printf $7}' | {
+#    read -r size
+#    if [ "$size" -lt 100 ]; then
+#      ((lessTh100B=lessTh100B+1))
+#      echo "$lessTh100B"
+#    elif [ "$size" -lt 1024 ]; then
+#      echo "lol2"
+#      lessTh1KiB=$((lessTh1KiB+1))
+#    elif [ "$size" -lt 10240 ]; then
+#      echo "lol3"
+#      lessTh10Kib=$((lessTh10Kib+1))
+#    elif [ "$size" -lt 102400 ]; then
+#      echo "lol4"
+#      lessTh100Kib=$((lessTh100Kib+1))
+#    elif [ "$size" -lt 1048576 ]; then
+#      echo "lol5"
+#      lessTh1Mib=$((lessTh1Mib+1))
+#    elif [ "$size" -lt 10485760 ]; then
+#      echo "lol6"
+#      lessTh10Mib=$((lessTh10Mib+1))
+#    elif [ "$size" -lt 104857600 ]; then
+#      echo "lol7"
+#      lessTh100Mib=$((lessTh100Mib+1))
+#    elif [ "$size" -lt 1073741824 ]; then
+#      echo "lol8"
+#      lessTh1Gib=$((lessTh1Gib+1))
+#    elif [ "$size" -ge 1073741824 ]; then
+#      echo "lol9"
+#      greaterEq1Gib=$((greaterEq1Gib+1))
+#    fi
+#  }
+# done
+# }
 
 fi
 
 
-echo "File size histogram:"
+#echo "File size histogram:"
