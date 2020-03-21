@@ -97,37 +97,27 @@ function getFiles {
 
 #finds the number of files of particular size
 
-function filter {
-  read -r size
+filter() {
+  size=$1
   if [ "$size" -lt 100 ]; then
-    lessTh100B=$((lessTh100B+1))
-    echo "$lessTh100B"
-  elif [ $size -lt 1024 ]; then
-    echo "lol2"
-    lessTh1KiB=$((lessTh1KiB+1))
-  elif [ $size -lt 10240 ]; then
-    echo "lol3"
-    lessTh10Kib=$((lessTh10Kib+1))
-  elif [ $size -lt 102400 ]; then
-    echo "lol4"
-    lessTh100Kib=$((lessTh100Kib+1))
-  elif [ $size -lt 1048576 ]; then
-    echo "lol5"
-    lessTh1Mib=$((lessTh1Mib+1))
-  elif [ $size -lt 10485760 ]; then
-    echo "lol6"
-    lessTh10Mib=$((lessTh10Mib+1))
-  elif [ $size -lt 104857600 ]; then
-    echo "lol7"
-    lessTh100Mib=$((lessTh100Mib+1))
-  elif [ $size -lt 1073741824 ]; then
-    echo "lol8"
-    lessTh1Gib=$((lessTh1Gib+1))
-  elif [ $size -ge 1073741824 ]; then
-    echo "lol9"
-    greaterEq1Gib=$((greaterEq1Gib+1))
+    lessTh100B=$((lessTh100B+1));
+  elif [ "$size" -lt 1024 ]; then
+    lessTh1KiB=$((lessTh1KiB+1));
+  elif [ "$size" -lt 10240 ]; then
+    lessTh10Kib=$((lessTh10Kib+1));
+  elif [ "$size" -lt 102400 ]; then
+    lessTh100Kib=$((lessTh100Kib+1));
+  elif [ "$size" -lt 1048576 ]; then
+    lessTh1Mib=$((lessTh1Mib+1));
+  elif [ "$size" -lt 10485760 ]; then
+    lessTh10Mib=$((lessTh10Mib+1));
+  elif [ "$size" -lt 104857600 ]; then
+    lessTh100Mib=$((lessTh100Mib+1));
+  elif [ "$size" -lt 1073741824 ]; then
+    lessTh1Gib=$((lessTh1Gib+1));
+  elif [ "$size"  -ge 1073741824 ]; then
+    greaterEq1Gib=$((greaterEq1Gib+1));
   fi
-
 }
 
 # function filter_names {
@@ -176,40 +166,14 @@ if [ "$regexFlag" -eq 0 ]; then
     NF=$allFiles
     echo "All files: $NF"
   }
+index=0
 
-find "$DIR" -type f -ls | egrep -v '^d' | awk '{print $7}' | {
-  read -r size
-  if [ "$size" -lt 100 ]; then
-    lessTh100B=$((lessTh100B+1))
-    echo "$lessTh100B"
-  elif [ $size -lt 1024 ]; then
-    echo "lol2"
-    lessTh1KiB=$((lessTh1KiB+1))
-  elif [ $size -lt 10240 ]; then
-    echo "lol3"
-    lessTh10Kib=$((lessTh10Kib+1))
-  elif [ $size -lt 102400 ]; then
-    echo "lol4"
-    lessTh100Kib=$((lessTh100Kib+1))
-  elif [ $size -lt 1048576 ]; then
-    echo "lol5"
-    lessTh1Mib=$((lessTh1Mib+1))
-  elif [ $size -lt 10485760 ]; then
-    echo "lol6"
-    lessTh10Mib=$((lessTh10Mib+1))
-  elif [ $size -lt 104857600 ]; then
-    echo "lol7"
-    lessTh100Mib=$((lessTh100Mib+1))
-  elif [ $size -lt 1073741824 ]; then
-    echo "lol8"
-    lessTh1Gib=$((lessTh1Gib+1))
-  elif [ $size -ge 1073741824 ]; then
-    echo "lol9"
-    greaterEq1Gib=$((greaterEq1Gib+1))
-  fi
+tmp=$(find "$DIR" -type f -ls | egrep -v '^d' | awk '{print $7}')
+  index="$tmp"
+  #echo ">>> $index"
 
-}
-
+#while read line; do echo "LINE: '${line}'"; done <<< "$index"
+while read line; do filter $line; done <<< "$index"
 
 echo "File size histogram:"
 echo "  <100 B: $lessTh100B"
@@ -226,43 +190,6 @@ echo "  >=1 GiB: $greaterEq1Gib"
 # find "$DIR" -type f -ls | awk '{printf $7}' | {
 #   read -r line
 #   echo "$line "
-# }
-
-#counts the number of files of particular size
-# find "$DIR" -type f -ls |  {
-# while read -r line; do
-#  echo "$line" | awk '{printf $7}' | {
-#    read -r size
-#    if [ "$size" -lt 100 ]; then
-#      ((lessTh100B=lessTh100B+1))
-#      echo "$lessTh100B"
-#    elif [ "$size" -lt 1024 ]; then
-#      echo "lol2"
-#      lessTh1KiB=$((lessTh1KiB+1))
-#    elif [ "$size" -lt 10240 ]; then
-#      echo "lol3"
-#      lessTh10Kib=$((lessTh10Kib+1))
-#    elif [ "$size" -lt 102400 ]; then
-#      echo "lol4"
-#      lessTh100Kib=$((lessTh100Kib+1))
-#    elif [ "$size" -lt 1048576 ]; then
-#      echo "lol5"
-#      lessTh1Mib=$((lessTh1Mib+1))
-#    elif [ "$size" -lt 10485760 ]; then
-#      echo "lol6"
-#      lessTh10Mib=$((lessTh10Mib+1))
-#    elif [ "$size" -lt 104857600 ]; then
-#      echo "lol7"
-#      lessTh100Mib=$((lessTh100Mib+1))
-#    elif [ "$size" -lt 1073741824 ]; then
-#      echo "lol8"
-#      lessTh1Gib=$((lessTh1Gib+1))
-#    elif [ "$size" -ge 1073741824 ]; then
-#      echo "lol9"
-#      greaterEq1Gib=$((greaterEq1Gib+1))
-#    fi
-#  }
-# done
 # }
 
 fi
