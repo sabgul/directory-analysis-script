@@ -72,6 +72,7 @@ if [ $regexFlag -eq 1 ]; then
 fi
 
 #---------------------------------------------#
+
 ##histogram variables
 lessTh100B=0
 lessTh1KiB=0
@@ -83,18 +84,6 @@ lessTh100Mib=0
 lessTh1Gib=0
 greaterEq1Gib=0
 
-#if regex
-#prechadzame vsetkymi subormi
-#nacitame riadok
-#vyhovuje regexu? -> continue
-#inak -> files++
-#je directory?
-#ak ano -> folders++
-
-#ak nie je zadany regex
-#prechadzame subormi
-#nacitame riadok, files++
-#je subor? folders++
 #---------------------------------------------#
 #-----------------Functions-------------------#
 function getFiles {
@@ -139,7 +128,7 @@ function filter_size {
         greaterEq1Gib=$((greaterEq1Gib+1))
       fi
     }
-  done 
+  done
 }
 
 #---------------------------------------------#
@@ -165,8 +154,8 @@ echo "Root directory: $DIR"
 # }
 
 #no directories are to be ignored
-
 if [ "$regexFlag" -eq 0 ]; then
+
   #recursively gets the number of all directories
   ls -lR "$DIR" | grep ^d | wc -l | {
     read -r allFolders
@@ -183,7 +172,51 @@ if [ "$regexFlag" -eq 0 ]; then
   }
 
   #counts the number of files of particular size
-find "$DIR" -type f -ls | filter_size
+find "$DIR" -type f -ls |  {
+while read -r line; do
+ echo "$line" | awk '{printf $7}' | {
+   read -r size
+   if [ "$size" -lt 100 ]; then
+     ((lessTh100B=lessTh100B+1))
+     echo "$lessTh100B"
+   elif [ "$size" -lt 1024 ]; then
+     echo "lol2"
+     lessTh1KiB=$((lessTh1KiB+1))
+   elif [ "$size" -lt 10240 ]; then
+     echo "lol3"
+     lessTh10Kib=$((lessTh10Kib+1))
+   elif [ "$size" -lt 102400 ]; then
+     echo "lol4"
+     lessTh100Kib=$((lessTh100Kib+1))
+   elif [ "$size" -lt 1048576 ]; then
+     echo "lol5"
+     lessTh1Mib=$((lessTh1Mib+1))
+   elif [ "$size" -lt 10485760 ]; then
+     echo "lol6"
+     lessTh10Mib=$((lessTh10Mib+1))
+   elif [ "$size" -lt 104857600 ]; then
+     echo "lol7"
+     lessTh100Mib=$((lessTh100Mib+1))
+   elif [ "$size" -lt 1073741824 ]; then
+     echo "lol8"
+     lessTh1Gib=$((lessTh1Gib+1))
+   elif [ "$size" -ge 1073741824 ]; then
+     echo "lol9"
+     greaterEq1Gib=$((greaterEq1Gib+1))
+   fi
+ }
+done
+}
+echo "1.: $lessTh100B"
+echo "2.: $lessTh1KiB"
+echo "3.: $lessTh10Kib"
+echo "4.: $lessTh100Kib"
+echo "5.: $lessTh1Mib"
+echo "6.: $lessTh10Mib"
+echo "7.: $lessTh100Mib"
+echo "8.: $lessTh1Gib"
+echo "9.: $greaterEq1Gib"
+
 fi
 
 
