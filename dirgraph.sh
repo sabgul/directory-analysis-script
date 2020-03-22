@@ -63,9 +63,7 @@ fi
 
 #regular expression check
 if [ $regexFlag -eq 1 ]; then
-  #presence of regex
   #check validity of the regular expression
-
   #check whether regex covers the root directory
   if echo "$DIR" | grep -qE "$regex"; then
       echo "error: regular expression covers the root directory" 1>&2
@@ -125,23 +123,47 @@ filter() {
 findMaximum() {
   if [ "$lessTh100B" -gt "$maximum" ]; then
     maximum=$lessTh100B
-  elif [ "$lessTh1KiB" -gt "$maximum" ]; then
+  fi
+  if [ "$lessTh1KiB" -gt "$maximum" ]; then
     maximum=$lessTh1KiB
-  elif [ "$lessTh10KiB" -gt "$maximum" ]; then
+  fi
+  if [ "$lessTh10KiB" -gt "$maximum" ]; then
     maximum=$lessTh10KiB
-  elif [ "$lessTh100KiB" -gt "$maximum" ]; then
+  fi
+  if [ "$lessTh100KiB" -gt "$maximum" ]; then
     maximum=$lessTh100KiB
-  elif [ "$lessTh1MiB" -gt "$maximum" ]; then
+  fi
+  if [ "$lessTh1MiB" -gt "$maximum" ]; then
     maximum=$lessTh1MiB
-  elif [ "$lessTh10MiB" -gt "$maximum" ]; then
+  fi
+  if [ "$lessTh10MiB" -gt "$maximum" ]; then
     maximum=$lessTh10MiB
-  elif [ "$lessTh100MiB" -gt "$maximum" ]; then
+  fi
+  if [ "$lessTh100MiB" -gt "$maximum" ]; then
     maximum=$lessTh100MiB
-  elif [ "$lessTh1GiB" -gt "$maximum" ]; then
+  fi
+  if [ "$lessTh1GiB" -gt "$maximum" ]; then
     maximum=$lessTh1GiB
-  elif [ "$greaterEq1GiB" -gt "$maximum" ]; then
+  fi
+  if [ "$greaterEq1GiB" -gt "$maximum" ]; then
     maximum=$greaterEq1GiB
   fi
+}
+
+#adjusts the values according to the max/width ratio
+# for the purpose of normalisation
+normalise() {
+  width=$1
+  maximum=$2
+  lessTh100B=$((lessTh100B*width/maximum))
+  lessTh1KiB=$((lessTh1KiB*width/maximum))
+  lessTh10KiB=$((lessTh10KiB*width/maximum))
+  lessTh100KiB=$((lessTh100KiB*width/maximum))
+  lessTh1MiB=$((lessTh1MiB*width/maximum))
+  lessTh10MiB=$((lessTh10MiB*width/maximum))
+  lessTh100MiB=$((lessTh100MiB*width/maximum))
+  lessTh1GiB=$((lessTh1GiB*width/maximum))
+  greaterEq1GiB=$((greaterEq1GiB*width/maximum))
 }
 
 #draws number of hashes according to the number of files
@@ -154,20 +176,6 @@ hashPut() {
   done
   printf "\n"
 }
-# function filter_names {
-#   if [ $regexFlag -eq 0 ]; then
-#     cat
-#     return
-#   fi
-#
-#   while read -r line; do
-#     echo $line | awk '{print $7}' | {
-#         read -r check
-#       if [[ ! $check =~ $regex ]]; then
-#         echo "$line"
-#       fi
-#     }
-# }
 
 #---------------------------------------------#
 #---------------------------------------------#
@@ -206,8 +214,9 @@ if [ "$regexFlag" -eq 0 ]; then
   while read -r line; do filter "$line"; done <<< "$size"
 fi
 
+#files specified by regex are to be ignored
 # if [ $regexFlag -eq 1 ]; then
-#
+# "${DIR##*/}" #gets the name of the directory
 # fi
 
 #---------------------------------------------#
@@ -215,16 +224,19 @@ fi
 
 if [ "$normalisationFlag" -eq 1 ]; then
   findMaximum
-  # if [ "$maximum" -lt "$width" ]; then
-  #   #(pocet suborov o velkosti n) * maximum / (width - 1)
-  #   #zaokruhlit nahor
-  # elif [ "$maximum" -ge "$width" ];then
-  #   #(pocet suborov o velkosti n) * (width -1) / maximum
-  #   #zaokruhlit nahor
-  # fi
+  #if done within terminal window
+  if [ -t 1 ]; then
+    width=$(tput cols);
+    width=$((width-12))
+  else
+    width="79"
+  fi
+
+  #if maximum exceeds the width of the window, values are adjusted
+  if [ "$maximum" -gt "$width" ]; then
+    normalise "$width" "$maximum"
+  fi
 fi
-#adjusts the values according to the max/width ratio
-#rounding is always done upwards
 
 #---------------------------------------------#
 #-------------Statistics display--------------#
