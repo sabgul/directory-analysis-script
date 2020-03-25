@@ -162,6 +162,17 @@ normalise() {
   greaterEq1GiB=$((greaterEq1GiB*width/maximum))
 }
 
+#evaluates files and directories to be ignored
+ignoreFolder() {
+  read -r directory
+  if [ "${DIR##*/}" =~ $regex ];then
+    continue
+  else
+    ND=$((ND+1))
+    echo "Directories: $ND"
+  fi
+}
+
 #draws number of hashes according to the number of files
 hashPut() {
   total=$1
@@ -252,20 +263,61 @@ if [ $regexFlag -eq 1 ]; then
   # #"${DIR##*/}" #gets the name of the directory
   #meno suboru, nie cesta
 
-  ls -lR "$DIR" | grep ^d | grep -v "$regex" | wc -l | {
-    read -r allFolders
-    ND=$allFolders
-    ND=$((ND+1))
-    echo "Directories: $ND"
-  }
 
-  ls -lR -la "$DIR" | grep ^- | grep -v "$regex" | wc -l | {
-    read -r allFiles
-    NF=$allFiles
-    echo "All files: $NF"
-  }
 
-  echo ">>>>$regex>>>>"
+  ls -lR "$DIR" | grep ^d | ignoreFolder
+
+  # dirname soubor | xargs basename
+  # alebo
+  # basename $(dirname soubor)
+
+  # ls -lR "$DIR" | grep ^d | grep -v "$regex" | wc -l | {
+  #   read -r allFolders
+  #   ND=$allFolders
+  #   ND=$((ND+1))
+  #   echo "Directories: $ND"
+  # }
+  # echo "<<REGEX:$regex<<"
+  # Directs=$(find "$DIR" -type d | egrep -v "$regex" | wc -l)
+
+  # NF=`find $DIR -type f | grep -v "$regex" | wc -l`
+  # alldircount=$(find $DIR -type d \( -path '*/.*' -prune -o ! -name '.*' \) -a -name "$regex" | wc -l) 2>/dev/null
+  #
+  # allfilecount=$(find "$DIR" \( -path '*/.*' -prune -o ! -name '.*' \) -type f -a -name "$regex" | wc -l) 2>/dev/null
+  #
+  # list=$(find "$DIR" -type f \( -path '*/.*' -prune -o ! -name '.*' \) -a -name "$regex" | while read line; do cat "$line" | wc -c; done | sort -nr) 2>/dev/null
+  #
+  # for i in `seq 1 $allfilecount`; do
+	# #krajime promennou list podle poctu souboru v ni ulozenych
+	#  size=$(echo $list | cut -f"$i" -d' ')
+  #  filter $size
+  # done
+  #
+  # ls -lR "$DIR" | grep ^d | grep -v "$regex" | wc -l | {
+  #   read -r allFolders
+  #   ND=$allFolders
+  #   ND=$((ND+1))
+  #   echo "Directories: $ND"
+  # }
+  #
+  # ls -lR -la "$DIR" | grep ^- | grep -v "$regex" | wc -l | {
+  #   read -r allFiles
+  #   NF=$allFiles
+  #   echo "All files: $NF"
+  # }
+  #
+  # echo ">>>>$regex>>>>"
+
+  echo "File size histogram:"
+  printf "  <100 B  : ";hashPut $lessTh100B
+  printf "  <1 KiB  : ";hashPut $lessTh1KiB
+  printf "  <10 KiB : ";hashPut $lessTh10KiB
+  printf "  <100 KiB: ";hashPut $lessTh100KiB
+  printf "  <1 MiB  : ";hashPut $lessTh1MiB
+  printf "  <10 MiB : ";hashPut $lessTh10MiB
+  printf "  <100 MiB: ";hashPut $lessTh100MiB
+  printf "  <1 GiB  : ";hashPut $lessTh1GiB
+  printf "  >=1 GiB : ";hashPut $greaterEq1GiB
 fi
 
 #---------------------------------------------#
