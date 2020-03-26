@@ -38,7 +38,6 @@ done
 
 #---------------------------------------------#
 #------------Initial precautions--------------#
-
 #validity of arguments check
 shift $((OPTIND-1))
 
@@ -164,12 +163,18 @@ normalise() {
 
 #evaluates files and directories to be ignored
 ignoreFolder() {
-  read -r directory
-  if [ "${DIR##*/}" =~ $regex ];then
-    continue
+  directory=$1
+  # echo ">>>DIR:$directory"
+  # echo "$directory" | grep -v "$regex" | wc -l | {
+  #   read -r allFolders
+  #   ND=$((ND+1))
+  # }
+  # echo "Directories: $ND"
+  if [[ "$directory"  =~ $regex ]];then
+    return
   else
     ND=$((ND+1))
-    echo "Directories: $ND"
+    # echo "Directories: $ND"
   fi
 }
 
@@ -261,11 +266,13 @@ fi
 #files specified by regex are to be ignored
 if [ $regexFlag -eq 1 ]; then
   # #"${DIR##*/}" #gets the name of the directory
-  #meno suboru, nie cesta
 
-
-
-  ls -lR "$DIR" | grep ^d | ignoreFolder
+  ls -lR "$DIR" | grep ^d | awk '{print substr($0, index($0,$9))}' | {
+    while read -r line; do
+      ignoreFolder "$line"
+    done
+    echo "Diretories: $ND"
+  }
 
   # dirname soubor | xargs basename
   # alebo
