@@ -174,9 +174,48 @@ ignoreFolder() {
     return
   else
     ND=$((ND+1))
-    # echo "Directories: $ND"
   fi
 }
+
+# ignoreFile() {
+#   fileLine=$1
+#   #vyparsujeme velkost, ak bude treba
+#   fileLineSize=$fileLine
+#
+#   echo ">>>>>$fileLine"
+#
+#   echo "$fileLine" | awk '{print substr($0, index($0,$9))}' | {
+#     while read -r name; do
+#       if [[ "$name"  =~ $regex ]]; then
+#         return
+#       else
+#         parsedSize=$(echo "$fileLineSize" | awk '{print $5}' )
+#         filter "$parsedSize"
+#         NF=$((NF+1))
+#         echo ">>>>$NF"
+#       fi
+#     done
+#   }
+
+  # awk '{print $5}' | {
+  #   while read -r size; do
+  #     echo "<<<<$size"
+  #   done
+  # }
+  #
+  #
+  # awk '{print substr($0, index($0,$9))}' | {
+  #     if [[ "$name"  =~ $regex ]];then
+  #       return
+  #     else
+  #       # echo ">>$name"
+  #       NF=$((NF+1))
+  #       # echo "<<NF: $NF"
+  #       # echo "Directories: $ND"
+  #     fi
+  #
+  # }
+# }
 
 #draws number of hashes according to the number of files
 hashPut() {
@@ -274,6 +313,69 @@ if [ $regexFlag -eq 1 ]; then
     echo "Diretories: $ND"
   }
 
+  ls -lR -la "$DIR" | grep ^- | {
+    while read -r file; do
+      fileSize=$file
+      fileLine=$file
+    # filepath=
+      # dirpath=${filepath%/*}
+      echo ">>>>CESTA: $(realpath "$file")"
+
+      # basename=$(dirname $file)
+      # echo ">>>>DIRNAME: $basename"
+      name=$(echo "$fileLine" | awk '{print substr($0, index($0,$9))}')
+      if [[ "$name" =~ $regex ]]; then
+        continue
+      else
+        parsedSize=$(echo "$fileSize" | awk '{print $5}')
+        filter $parsedSize
+        NF=$((NF+1))
+      fi
+    done
+
+    echo "All files: $NF"
+
+    #---------------------------------------------#
+    #---------------Normalisation-----------------#
+
+    if [ "$normalisationFlag" -eq 1 ]; then
+      findMaximum
+      #if done within terminal window
+      if [ -t 1 ]; then
+        width=$(tput cols);
+        width=$((width-13))
+      else
+        width="79-12"
+      fi
+
+      #if maximum exceeds the width of the window, values are adjusted
+      if [ "$maximum" -gt "$width" ]; then
+        normalise "$width" "$maximum"
+      fi
+    fi
+
+    #---------------------------------------------#
+    #-------------Statistics display--------------#
+
+    echo "File size histogram:"
+    printf "  <100 B  : ";hashPut $lessTh100B
+    printf "  <1 KiB  : ";hashPut $lessTh1KiB
+    printf "  <10 KiB : ";hashPut $lessTh10KiB
+    printf "  <100 KiB: ";hashPut $lessTh100KiB
+    printf "  <1 MiB  : ";hashPut $lessTh1MiB
+    printf "  <10 MiB : ";hashPut $lessTh10MiB
+    printf "  <100 MiB: ";hashPut $lessTh100MiB
+    printf "  <1 GiB  : ";hashPut $lessTh1GiB
+    printf "  >=1 GiB : ";hashPut $greaterEq1GiB
+
+  }
+
+
+  # find "$DIR" -type f -ls | grep -E -v '^d' | awk '{print $7}' | {
+  #   while read -r size; do
+  #     filter "$size"
+  #   done
+
   # dirname soubor | xargs basename
   # alebo
   # basename $(dirname soubor)
@@ -315,50 +417,4 @@ if [ $regexFlag -eq 1 ]; then
   #
   # echo ">>>>$regex>>>>"
 
-  echo "File size histogram:"
-  printf "  <100 B  : ";hashPut $lessTh100B
-  printf "  <1 KiB  : ";hashPut $lessTh1KiB
-  printf "  <10 KiB : ";hashPut $lessTh10KiB
-  printf "  <100 KiB: ";hashPut $lessTh100KiB
-  printf "  <1 MiB  : ";hashPut $lessTh1MiB
-  printf "  <10 MiB : ";hashPut $lessTh10MiB
-  printf "  <100 MiB: ";hashPut $lessTh100MiB
-  printf "  <1 GiB  : ";hashPut $lessTh1GiB
-  printf "  >=1 GiB : ";hashPut $greaterEq1GiB
 fi
-
-#---------------------------------------------#
-#---------------Normalisation-----------------#
-
-if [ "$normalisationFlag" -eq 1 ]; then
-  findMaximum
-  #if done within terminal window
-  if [ -t 1 ]; then
-    width=$(tput cols);
-    width=$((width-13))
-  else
-    width="79-12"
-  fi
-
-  #if maximum exceeds the width of the window, values are adjusted
-  if [ "$maximum" -gt "$width" ]; then
-    normalise "$width" "$maximum"
-  fi
-fi
-
-#---------------------------------------------#
-#-------------Statistics display--------------#
-
-# echo "File size histogram:"
-# printf "  <100 B  : ";hashPut $lessTh100B
-# printf "  <1 KiB  : ";hashPut $lessTh1KiB
-# printf "  <10 KiB : ";hashPut $lessTh10KiB
-# printf "  <100 KiB: ";hashPut $lessTh100KiB
-# printf "  <1 MiB  : ";hashPut $lessTh1MiB
-# printf "  <10 MiB : ";hashPut $lessTh10MiB
-# printf "  <100 MiB: ";hashPut $lessTh100MiB
-# printf "  <1 GiB  : ";hashPut $lessTh1GiB
-# printf "  >=1 GiB : ";hashPut $greaterEq1GiB
-
-#---------------------------------------------#
-#---------------End of code-------------------#
