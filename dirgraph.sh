@@ -269,7 +269,7 @@ if [ $regexFlag -eq 1 ]; then
         continue
       else
         parsedSize=$(echo "$fileSize" | awk '{print $5}')
-        filter $parsedSize
+        filter "$parsedSize"
         NF=$((NF+1))
       fi
     done
