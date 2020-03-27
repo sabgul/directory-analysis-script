@@ -319,14 +319,21 @@ if [ $regexFlag -eq 1 ]; then
       fileLine=$file
     # filepath=
       # dirpath=${filepath%/*}
-      echo ">>>>CESTA: $(realpath "$file")"
+    #   echo ">>>>CESTA: $(realpath "$file")"
 
       # basename=$(dirname $file)
       # echo ">>>>DIRNAME: $basename"
       name=$(echo "$fileLine" | awk '{print substr($0, index($0,$9))}')
+      filePath=$( find . -name "$name" | sed 's|/[^/]*$||')
+      filename=$(basename "$filePath")
+      # basename=$(dirname "$name")
+      # echo "<<<<$basename"
+      #lmn=dirname "$name"
       if [[ "$name" =~ $regex ]]; then
         continue
-      else
+      elif [[ "$filename" =~ $regex ]]; then
+        continue
+      else   
         parsedSize=$(echo "$fileSize" | awk '{print $5}')
         filter $parsedSize
         NF=$((NF+1))
