@@ -82,14 +82,6 @@ greaterEq1GiB=0
 #---------------------------------------------#
 #-----------------Functions-------------------#
 
-# getFiles() {
-#   nOfFiles=0
-#   while read -r line; do
-#       nOfFiles=$((nOfFiles+1))
-#   done
-#   echo $nOfFiles
-# }
-
 #finds the number of files of particular size
 filter() {
   size=$1
@@ -146,7 +138,6 @@ findMaximum() {
 }
 
 #adjusts the values according to the max/width ratio
-# for the purpose of normalisation
 normalise() {
   width=$1
   maximum=$2
@@ -164,58 +155,12 @@ normalise() {
 #evaluates files and directories to be ignored
 ignoreFolder() {
   directory=$1
-  # echo ">>>DIR:$directory"
-  # echo "$directory" | grep -v "$regex" | wc -l | {
-  #   read -r allFolders
-  #   ND=$((ND+1))
-  # }
-  # echo "Directories: $ND"
   if [[ "$directory"  =~ $regex ]];then
     return
   else
     ND=$((ND+1))
   fi
 }
-
-# ignoreFile() {
-#   fileLine=$1
-#   #vyparsujeme velkost, ak bude treba
-#   fileLineSize=$fileLine
-#
-#   echo ">>>>>$fileLine"
-#
-#   echo "$fileLine" | awk '{print substr($0, index($0,$9))}' | {
-#     while read -r name; do
-#       if [[ "$name"  =~ $regex ]]; then
-#         return
-#       else
-#         parsedSize=$(echo "$fileLineSize" | awk '{print $5}' )
-#         filter "$parsedSize"
-#         NF=$((NF+1))
-#         echo ">>>>$NF"
-#       fi
-#     done
-#   }
-
-  # awk '{print $5}' | {
-  #   while read -r size; do
-  #     echo "<<<<$size"
-  #   done
-  # }
-  #
-  #
-  # awk '{print substr($0, index($0,$9))}' | {
-  #     if [[ "$name"  =~ $regex ]];then
-  #       return
-  #     else
-  #       # echo ">>$name"
-  #       NF=$((NF+1))
-  #       # echo "<<NF: $NF"
-  #       # echo "Directories: $ND"
-  #     fi
-  #
-  # }
-# }
 
 #draws number of hashes according to the number of files
 hashPut() {
@@ -230,16 +175,9 @@ hashPut() {
 
 #---------------------------------------------#
 #---------------------------------------------#
+
 #displays the root directory
 echo "Root directory: $DIR"
-
-#find "$DIR" -type f -ls | awk '{print substr($0, index($0,$11))}' | getFolders
-#echo $DIR
-# find "$DIR" -type f -ls | getFolders | {
-#   read -r allFolders
-#   ND=$allFolders
-#   echo "All directories: $ND"
-# }
 
 #no directories are to be ignored
 if [ "$regexFlag" -eq 0 ]; then
@@ -259,7 +197,6 @@ if [ "$regexFlag" -eq 0 ]; then
   }
 
   #gets the sizes of all files within the folder
-  #size=$(find "$DIR" -type f -ls | grep -E -v '^d' | awk '{print $7}')
   find "$DIR" -type f -ls | grep -E -v '^d' | awk '{print $7}' | {
     while read -r size; do
       filter "$size"
@@ -300,12 +237,12 @@ if [ "$regexFlag" -eq 0 ]; then
   }
 fi
 
+#---------------------------------------------#
 #-------------------Regex---------------------#
 
 #files specified by regex are to be ignored
 if [ $regexFlag -eq 1 ]; then
-  # #"${DIR##*/}" #gets the name of the directory
-
+  #recursively gets the number of directories not ignored by regex
   ls -lR "$DIR" | grep ^d | awk '{print substr($0, index($0,$9))}' | {
     while read -r line; do
       ignoreFolder "$line"
@@ -313,27 +250,24 @@ if [ $regexFlag -eq 1 ]; then
     echo "Diretories: $ND"
   }
 
+  #recursively gets the number of all files not ignored by regex
   ls -lR -la "$DIR" | grep ^- | {
     while read -r file; do
       fileSize=$file
       fileLine=$file
-    # filepath=
-      # dirpath=${filepath%/*}
-    #   echo ">>>>CESTA: $(realpath "$file")"
 
-      # basename=$(dirname $file)
-      # echo ">>>>DIRNAME: $basename"
+      #gets the name of file
       name=$(echo "$fileLine" | awk '{print substr($0, index($0,$9))}')
+      #gets the path to the parent directory
       filePath=$( find . -name "$name" | sed 's|/[^/]*$||')
+      #gets the name of the parent directory
       filename=$(basename "$filePath")
-      # basename=$(dirname "$name")
-      # echo "<<<<$basename"
-      #lmn=dirname "$name"
+
       if [[ "$name" =~ $regex ]]; then
         continue
       elif [[ "$filename" =~ $regex ]]; then
         continue
-      else   
+      else
         parsedSize=$(echo "$fileSize" | awk '{print $5}')
         filter $parsedSize
         NF=$((NF+1))
@@ -377,51 +311,7 @@ if [ $regexFlag -eq 1 ]; then
 
   }
 
-
-  # find "$DIR" -type f -ls | grep -E -v '^d' | awk '{print $7}' | {
-  #   while read -r size; do
-  #     filter "$size"
-  #   done
-
-  # dirname soubor | xargs basename
-  # alebo
-  # basename $(dirname soubor)
-
-  # ls -lR "$DIR" | grep ^d | grep -v "$regex" | wc -l | {
-  #   read -r allFolders
-  #   ND=$allFolders
-  #   ND=$((ND+1))
-  #   echo "Directories: $ND"
-  # }
-  # echo "<<REGEX:$regex<<"
-  # Directs=$(find "$DIR" -type d | egrep -v "$regex" | wc -l)
-
-  # NF=`find $DIR -type f | grep -v "$regex" | wc -l`
-  # alldircount=$(find $DIR -type d \( -path '*/.*' -prune -o ! -name '.*' \) -a -name "$regex" | wc -l) 2>/dev/null
-  #
-  # allfilecount=$(find "$DIR" \( -path '*/.*' -prune -o ! -name '.*' \) -type f -a -name "$regex" | wc -l) 2>/dev/null
-  #
-  # list=$(find "$DIR" -type f \( -path '*/.*' -prune -o ! -name '.*' \) -a -name "$regex" | while read line; do cat "$line" | wc -c; done | sort -nr) 2>/dev/null
-  #
-  # for i in `seq 1 $allfilecount`; do
-	# #krajime promennou list podle poctu souboru v ni ulozenych
-	#  size=$(echo $list | cut -f"$i" -d' ')
-  #  filter $size
-  # done
-  #
-  # ls -lR "$DIR" | grep ^d | grep -v "$regex" | wc -l | {
-  #   read -r allFolders
-  #   ND=$allFolders
-  #   ND=$((ND+1))
-  #   echo "Directories: $ND"
-  # }
-  #
-  # ls -lR -la "$DIR" | grep ^- | grep -v "$regex" | wc -l | {
-  #   read -r allFiles
-  #   NF=$allFiles
-  #   echo "All files: $NF"
-  # }
-  #
-  # echo ">>>>$regex>>>>"
-
 fi
+
+#---------------------------------------------#
+#--------------End of the script--------------#
